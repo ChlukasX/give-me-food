@@ -8,6 +8,7 @@ import (
 type Recipe struct {
 	ID int
 	Name string
+	Ingredients []Ingredient
 }
 
 func GetAll() ([]Recipe, error) {
@@ -21,6 +22,9 @@ func GetAll() ([]Recipe, error) {
 	}
 
 	err = json.Unmarshal(data, &recipes)
+	if err != nil {
+		return nil, err
+	}
 
 	return recipes, nil
 }
