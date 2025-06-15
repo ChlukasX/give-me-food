@@ -1,55 +1,48 @@
 package models
 
 import (
-	"encoding/json"
-	"os"
+	"database/sql"
 )
 
-type RecipeType string
-
-const (
-	Main RecipeType = "main"
-	Side RecipeType = "side"
-)
-
-type BlockType string
-
-const (
-	Protein BlockType = "protein"
-	Sauce BlockType = "sauce"
-	Aromatics BlockType = "aromatics"
-	Vegtable BlockType = "vegtable"
-	Garnish BlockType = "garnish"
-	Seasonings BlockType = "seasoning"
-)
-
-type RecipeComponent struct {
-	ID int
-	Name string
-	Type BlockType
-	Ingredients []Ingredient
+type RecipeModelInterface interface {
+	GetAll() ([]Recipe, error)
 }
 
 type Recipe struct {
 	ID int
 	Name string
-	Type RecipeType
+	RecipeType string
 	Instructions string
 	Component []RecipeComponent
 }
 
-func GetAll() ([]Recipe, error) {
-	var recipes []Recipe
+type RecipeModel struct {
+	DB *sql.DB
+}
 
-	recipejson := "data/recipes.json"
+func (m *RecipeModel)GetAll() ([]*Recipe, error) {
+	stmt := `SELECT * FROM recipes`
 
-	data, err := os.ReadFile(recipejson)
+	rows, err := m.DB.Query(stmt)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
-	err = json.Unmarshal(data, &recipes)
-	if err != nil {
+	recipes := []*Recipe{}
+
+	for rows.Next() {
+		r := &Recipe{}
+
+		err = rows.Scan(&r.ID, &r.Name, &r.RecipeType, &r.Instructions, &r.Component)
+		if err != nil {
+			return nil, err
+		}
+
+		recipes = append(recipes, r)
+	}
+
+	if err = rows.Err(); err != nil {
 		return nil, err
 	}
 
