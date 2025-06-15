@@ -5,10 +5,37 @@ import (
 	"os"
 )
 
+type RecipeType string
+
+const (
+	Main RecipeType = "main"
+	Side RecipeType = "side"
+)
+
+type BlockType string
+
+const (
+	Protein BlockType = "protein"
+	Sauce BlockType = "sauce"
+	Aromatics BlockType = "aromatics"
+	Vegtable BlockType = "vegtable"
+	Garnish BlockType = "garnish"
+	Seasonings BlockType = "seasoning"
+)
+
+type RecipeComponent struct {
+	ID int
+	Name string
+	Type BlockType
+	Ingredients []Ingredient
+}
+
 type Recipe struct {
 	ID int
 	Name string
-	Ingredients []Ingredient
+	Type RecipeType
+	Instructions string
+	Component []RecipeComponent
 }
 
 func GetAll() ([]Recipe, error) {
