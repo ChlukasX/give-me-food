@@ -5,7 +5,7 @@ import (
 )
 
 type RecipeModelInterface interface {
-	GetAll() ([]Recipe, error)
+	GetAll() ([]*Recipe, error)
 }
 
 type Recipe struct {

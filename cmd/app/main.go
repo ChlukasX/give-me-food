@@ -2,17 +2,20 @@ package main
 
 import (
 	"database/sql"
-	"flag"
 	"fmt"
 	"log"
-	"math/rand"
 	"os"
-	"time"
 
 	"github.com/ChlukasX/give-me-food/internal/models"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
+
+type Application struct {
+	errorLog *log.Logger
+	infoLog *log.Logger
+	recipes models.RecipeModelInterface
+}
 
 func main () {
 	err := godotenv.Load()
@@ -20,16 +23,13 @@ func main () {
 		log.Fatal(err)
 	}
 
-	amount := flag.Int("amount", 7, "The amount of food recipes")
-	flag.Parse()
-
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-    os.Getenv("DB_HOST"),     // localhost
-    os.Getenv("DB_PORT"),     // 5432
-    os.Getenv("DB_USER"),     // postgres
-    os.Getenv("DB_PASSWORD"), // password
-    os.Getenv("DB_NAME"),     // myapp
-	)
+		os.Getenv("DB_HOST"),     // localhost
+		os.Getenv("DB_PORT"),     // 5432
+		os.Getenv("DB_USER"),     // postgres
+		os.Getenv("DB_PASSWORD"), // password
+		os.Getenv("DB_NAME"),     // myapp
+		)
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
@@ -40,27 +40,18 @@ func main () {
 	}
 	defer db.Close()
 
-	infoLog.Printf("The amount is %d\n", *amount)
+	app := &Application{
+		errorLog: errorLog,
+		infoLog: infoLog,
+		recipes: &models.RecipeModel{DB: db},
+	}
 
-	recipes, err := models.GetAll()
+	recipes, err := app.recipes.GetAll()
 	if err != nil {
 		errorLog.Fatal(err)
 	}
 
-	infoLog.Println("The Recipes are:")
-
-	for _, recipe := range recipes {
-		infoLog.Println(recipe)
-	}
-
-	rand.Seed(time.Now().UnixNano())
-	infoLog.Println("Random Recipes")
-
-	for i := range *amount {
-		randomIndex := rand.Intn(len(recipes))
-		pick := recipes[randomIndex]
-		infoLog.Println("nr ", i+1, ": ", pick)
-	}
+	infoLog.Print(recipes)
 }
 
 func openDB(connStr string) (*sql.DB, error) {
