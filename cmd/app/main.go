@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/ChlukasX/give-me-food/internal/models"
+	"github.com/ChlukasX/give-me-food/internal/service"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -15,6 +16,7 @@ type Application struct {
 	errorLog *log.Logger
 	infoLog *log.Logger
 	recipes models.RecipeModelInterface
+	recipesService *service.RecipeService
 }
 
 func main () {
@@ -28,7 +30,7 @@ func main () {
 		os.Getenv("DB_PORT"),     // 5432
 		os.Getenv("DB_USER"),     // postgres
 		os.Getenv("DB_PASSWORD"), // password
-		os.Getenv("DB_NAME"),     // myapp
+		os.Getenv("DB_NAME"),     // give-me-food
 		)
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
@@ -40,18 +42,25 @@ func main () {
 	}
 	defer db.Close()
 
+	rservice := service.NewRecipeService(&models.RecipeModel{DB: db})
+
 	app := &Application{
 		errorLog: errorLog,
 		infoLog: infoLog,
 		recipes: &models.RecipeModel{DB: db},
+		recipesService: rservice,
 	}
 
-	recipes, err := app.recipes.GetAll()
+	recipes, err := app.recipesService.RecommendUnique(7)
 	if err != nil {
-		errorLog.Fatal(err)
+		app.errorLog.Fatal(err)
 	}
 
-	infoLog.Print(recipes)
+	app.infoLog.Println("Recommended recipes:")
+	for _, recipe := range recipes {
+		fmt.Printf("ID: %d, Name: %s, Type: %s, Instructions: %s\n", 
+			recipe.ID, recipe.Name, recipe.RecipeType, recipe.Instructions)
+	}
 }
 
 func openDB(connStr string) (*sql.DB, error) {

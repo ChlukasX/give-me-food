@@ -20,8 +20,8 @@ type RecipeModel struct {
 	DB *sql.DB
 }
 
-func (m *RecipeModel)GetAll() ([]*Recipe, error) {
-	stmt := `SELECT * FROM recipes`
+func (m *RecipeModel) GetAll() ([]*Recipe, error) {
+	stmt := `SELECT r.id, r.name, r.recipe_type, r.instructions from recipes r;`
 
 	rows, err := m.DB.Query(stmt)
 	if err != nil {
@@ -34,7 +34,7 @@ func (m *RecipeModel)GetAll() ([]*Recipe, error) {
 	for rows.Next() {
 		r := &Recipe{}
 
-		err = rows.Scan(&r.ID, &r.Name, &r.RecipeType, &r.Instructions, &r.Component)
+		err = rows.Scan(&r.ID, &r.Name, &r.RecipeType, &r.Instructions)
 		if err != nil {
 			return nil, err
 		}
