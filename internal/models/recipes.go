@@ -5,6 +5,7 @@ import (
 )
 
 type RecipeModelInterface interface {
+	Insert(name, recipeType, description string) (error)
 	GetAll() ([]*Recipe, error)
 }
 
@@ -20,6 +21,17 @@ type RecipeModel struct {
 	DB *sql.DB
 }
 
+func (m *RecipeModel) Insert(name, recipeType, description string) (error) {
+	stmt := `INSERT INTO recipes (name, recipe_type, description)
+	VALUES(?, ?, ?)`
+
+	_, err := m.DB.Exec(stmt, name, recipeType, description)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 func (m *RecipeModel) GetAll() ([]*Recipe, error) {
 	stmt := `SELECT r.id, r.name, r.recipe_type, r.instructions from recipes r;`
 
