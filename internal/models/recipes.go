@@ -2,11 +2,13 @@ package models
 
 import (
 	"database/sql"
+	"errors"
 )
 
 type RecipeModelInterface interface {
 	Insert(name, recipeType, description string) (error)
 	GetAll() ([]*Recipe, error)
+	Get(id int) (*Recipe, error)
 }
 
 type Recipe struct {
@@ -59,4 +61,24 @@ func (m *RecipeModel) GetAll() ([]*Recipe, error) {
 	}
 
 	return recipes, nil
+}
+
+func (m *RecipeModel) Get(id int) (*Recipe, error) {
+	stmt := `SELECT id, name, recipe_type, instructions FROM recipes
+	WHERE id = ?`
+
+	row := m.DB.QueryRow(stmt, id)
+
+	r := &Recipe{}
+
+	err := row.Scan(&r.ID, &r.Name, &r.RecipeType, &r.Instructions)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, sql.ErrNoRows
+		} else {
+			return nil, err
+		}
+	}
+
+	return r, nil
 }
