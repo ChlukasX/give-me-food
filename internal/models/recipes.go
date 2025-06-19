@@ -74,7 +74,7 @@ func (m *RecipeModel) Get(id int) (*Recipe, error) {
 	err := row.Scan(&r.ID, &r.Name, &r.RecipeType, &r.Instructions)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, sql.ErrNoRows
+			return nil, ErrNoRecord
 		} else {
 			return nil, err
 		}
